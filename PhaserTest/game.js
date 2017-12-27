@@ -40,12 +40,13 @@ var test;
         __extends(Level, _super);
         function Level() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.cameraScale = 1;
             _this.lastPointer = new Phaser.Point();
             _this.pointer = new Phaser.Point();
             _this.pointerWorld = new Phaser.Point();
             return _this;
         }
-        // Returns max scale that doesn't go out of bounds
+        // Returns min scale
         Level.prototype.getFitScale = function (map) {
             var scale;
             if (map.heightInPixels / this.game.height <= map.widthInPixels / this.game.width) {
@@ -56,51 +57,22 @@ var test;
             }
             return scale;
         };
-        // Set camera zoom to fit map
-        Level.prototype.setCameraFit = function () {
-            this.cameraScale = this.getFitScale(this.map);
-            this.adjustCameraZoom(this.cameraScale);
-        };
         Level.prototype.zoomIn = function (scaleDiff) {
             this.cameraScale += scaleDiff;
             this.adjustCameraZoom(this.cameraScale);
         };
         Level.prototype.zoomOut = function (scaleDiff) {
             this.cameraScale -= scaleDiff;
-            if (this.cameraScale < this.getFitScale(this.map)) {
-                this.cameraScale = this.getFitScale(this.map);
+            if (this.cameraScale < 1) {
+                this.cameraScale = 1;
             }
             this.adjustCameraZoom(this.cameraScale);
         };
         Level.prototype.adjustCameraZoom = function (scale) {
             var newWidth = this.game.width / scale;
             var newHeight = this.game.height / scale;
-            //this.camera.setSize(newWidth, newHeight);
+            this.camera.setSize(newWidth, newHeight);
             this.camera.scale.setTo(scale, scale);
-        };
-        // A function to replace check bounds from the default camera
-        // Default function doesn't works well with scaling
-        Level.prototype.checkBounds = function (camera) {
-            if (camera.x > camera.bounds.width - camera.width) {
-                camera.x = camera.bounds.width - camera.width;
-            }
-            if (camera.y > camera.bounds.height - camera.height) {
-                camera.y = camera.bounds.height - camera.height;
-            }
-        };
-        // Returns adjusted pointer location with respect to the world location
-        Level.prototype.adjustPointerWorld = function (activePointer) {
-            var x = this.camera.x + activePointer.x / this.cameraScale;
-            var y = this.camera.y + activePointer.y / this.cameraScale;
-            var point = new Phaser.Point(x, y);
-            return point;
-        };
-        // Returns adjusted pointer location based on the screen
-        Level.prototype.adjustPointerScreen = function (activePointer) {
-            var x = activePointer.x / this.cameraScale;
-            var y = activePointer.y / this.cameraScale;
-            var point = new Phaser.Point(x, y);
-            return point;
         };
         // Move camera based on increments
         Level.prototype.moveCamera = function (dx, dy) {
@@ -112,13 +84,44 @@ var test;
             this.camera.x = x;
             this.camera.y = y;
         };
+        // A function to replace check bounds from the default camera
+        // Default function doesn't works well with scaling
+        Level.prototype.checkCameraBounds = function (camera) {
+            if (camera.x > camera.bounds.width - camera.width) {
+                camera.x = camera.bounds.width - camera.width;
+            }
+            if (camera.y > camera.bounds.height - camera.height) {
+                camera.y = camera.bounds.height - camera.height;
+            }
+        };
+        // Returns pointer location in screen adjusted to camera scale
+        Level.prototype.getPointerLoc = function () {
+            var x, y;
+            x = this.input.activePointer.x / this.cameraScale;
+            y = this.input.activePointer.y / this.cameraScale;
+            return new Phaser.Point(x, y);
+        };
+        // Returns pointer location in world adjusted to camera scale
+        Level.prototype.getPointerWorldLoc = function () {
+            var x, y;
+            x = this.camera.x + this.getPointerLoc().x;
+            y = this.camera.y + this.getPointerLoc().y;
+            return new Phaser.Point(x, y);
+        };
+        // Returns pointer location in world before scaling
+        Level.prototype.getPointerTileLoc = function () {
+            var x, y;
+            x = this.getPointerWorldLoc().x / this.tileScale;
+            y = this.getPointerWorldLoc().y / this.tileScale;
+            return new Phaser.Point(x, y);
+        };
         // Handles inputs in editor mode to move the screen
         Level.prototype.editorScreenCheckInput = function () {
             if (this.game.input.activePointer.justPressed) {
                 this.lastPointer = this.pointer;
             }
-            this.pointer = this.adjustPointerScreen(this.input.activePointer);
-            this.pointerWorld = this.adjustPointerWorld(this.input.activePointer);
+            this.pointer = this.getPointerLoc();
+            this.pointerWorld = this.getPointerWorldLoc();
             if (this.game.input.activePointer.isDown) {
                 // dx and dy are reversed to match mouse dragging
                 var dx = this.lastPointer.x - this.pointer.x;
@@ -128,11 +131,11 @@ var test;
             }
             if (this.cursors.up.isDown) {
                 // this.camera.y -= 4;
-                this.zoomIn(0.1);
+                this.zoomIn(0.05);
             }
             else if (this.cursors.down.isDown) {
                 // this.camera.y += 4;
-                this.zoomOut(0.1);
+                this.zoomOut(0.05);
             }
             if (this.cursors.left.isDown) {
                 this.camera.x -= 4;
@@ -145,46 +148,32 @@ var test;
             this.map = this.game.add.tilemap('world1');
             this.map.addTilesetImage('SuperMarioBros');
             this.ground = this.map.createLayer('World1', this.map.widthInPixels, this.map.heightInPixels);
+            this.tileScale = this.getFitScale(this.map);
+            this.tileSize = this.map.tileHeight * this.tileScale;
+            this.ground.scale.setTo(this.tileScale, this.tileScale);
             this.ground.resizeWorld();
             this.ground.debug = true;
-            this.camera.bounds.setTo(0, 0, this.map.widthInPixels, this.map.heightInPixels);
-            this.setCameraFit();
             this.cursors = this.input.keyboard.createCursorKeys();
             this.marker = this.add.graphics();
             this.marker.lineStyle(2, 0x00bff3, 1);
-            this.marker.drawRect(0, 0, 16, 16);
+            this.marker.drawRect(0, 0, this.tileSize, this.tileSize);
         };
         Level.prototype.update = function () {
             this.editorScreenCheckInput();
-            this.checkBounds(this.camera);
+            this.marker.x = this.ground.getTileX(this.getPointerTileLoc().x) * this.tileSize;
+            this.marker.y = this.ground.getTileY(this.getPointerTileLoc().y) * this.tileSize;
+            this.checkCameraBounds(this.camera);
         };
         Level.prototype.render = function () {
-            // this.game.debug.text(this.pointer.x.toString(), 400, 400);
-            this.game.debug.pointer(this.game.input.activePointer);
-            this.game.debug.cameraInfo(this.camera, 32, 32);
-            this.game.debug.text('Tile X: ' + this.ground.getTileX(this.pointerWorld.x), 32, 48, 'rgb(0,0,0)');
-            this.game.debug.text('Tile Y: ' + this.ground.getTileY(this.pointerWorld.y), 32, 64, 'rgb(0,0,0)');
+            var x, y;
+            x = this.ground.getTileX(this.getPointerTileLoc().x);
+            y = this.ground.getTileX(this.getPointerTileLoc().y);
+            this.game.debug.text('Tile X: ' + x, 32, 48, 'rgb(0,0,0)');
+            this.game.debug.text('Tile Y: ' + y, 32, 64, 'rgb(0,0,0)');
         };
         return Level;
     }(Phaser.State));
     test.Level = Level;
-})(test || (test = {}));
-var test;
-(function (test) {
-    var main = /** @class */ (function (_super) {
-        __extends(main, _super);
-        function main() {
-            var _this = _super.call(this, 800, 600, Phaser.AUTO, 'content', null) || this;
-            _this.state.add('Boot', test.Boot, false);
-            _this.state.add('Preload', test.Preload, false);
-            _this.state.add('Menu', test.Menu, false);
-            _this.state.add('Level', test.Level, false);
-            _this.state.start('Boot');
-            return _this;
-        }
-        return main;
-    }(Phaser.Game));
-    test.main = main;
 })(test || (test = {}));
 var test;
 (function (test) {
@@ -218,5 +207,22 @@ var test;
         return Preload;
     }(Phaser.State));
     test.Preload = Preload;
+})(test || (test = {}));
+var test;
+(function (test) {
+    var main = /** @class */ (function (_super) {
+        __extends(main, _super);
+        function main() {
+            var _this = _super.call(this, 800, 600, Phaser.AUTO, 'content', null) || this;
+            _this.state.add('Boot', test.Boot, false);
+            _this.state.add('Preload', test.Preload, false);
+            _this.state.add('Menu', test.Menu, false);
+            _this.state.add('Level', test.Level, false);
+            _this.state.start('Boot');
+            return _this;
+        }
+        return main;
+    }(Phaser.Game));
+    test.main = main;
 })(test || (test = {}));
 //# sourceMappingURL=game.js.map
