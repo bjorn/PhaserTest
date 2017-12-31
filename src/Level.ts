@@ -111,8 +111,6 @@
 
         pointerWorld: Phaser.Point = new Phaser.Point();
 
-        cursors: Phaser.CursorKeys;
-
         // Handles inputs in editor mode to move the screen
         editorScreenCheckInput() {
 
@@ -132,20 +130,13 @@
                 this.lastPointer = this.pointer;
             }
 
-            if (this.cursors.up.isDown) {
+            if (this.game.input.keyboard.isDown(Phaser.Keyboard.EQUALS)) {
                 // this.camera.y -= 4;
                 this.zoomIn(0.05);
             }
-            else if (this.cursors.down.isDown) {
+            else if (this.game.input.keyboard.isDown(Phaser.Keyboard.MINUS)) {
                 // this.camera.y += 4;
                 this.zoomOut(0.05);
-            }
-
-            if (this.cursors.left.isDown) {
-                this.camera.x -= 4;
-            }
-            else if (this.cursors.right.isDown) {
-                this.camera.x += 4;
             }
         }
 
@@ -154,6 +145,8 @@
         ground: Phaser.TilemapLayer;
         platform: Phaser.TilemapLayer;
         misc: Phaser.TilemapLayer;
+
+        player: test.Player;
 
         marker: Phaser.Graphics;
 
@@ -177,7 +170,8 @@
             this.misc = this.map.createLayer('Misc');
             this.resizeLayer(this.misc);
 
-            this.cursors = this.input.keyboard.createCursorKeys();
+            // Add player
+            this.player = new Player(this.game, 200, 200);
 
             // Create the box cursor
             this.marker = this.add.graphics();

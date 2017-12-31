@@ -9,6 +9,7 @@ module test {
 
             this.load.tilemap('world1', 'assets/mario.json', null, Phaser.Tilemap.TILED_JSON);
             this.load.image('SuperMarioBros', 'assets/super_mario.png');
+            this.load.spritesheet('dude', 'assets/dude.png', 32, 48);
         }
 
         create() {

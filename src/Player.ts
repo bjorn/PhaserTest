@@ -1,19 +1,21 @@
-module MyGame {
+module test {
 
 	export class Player extends Phaser.Sprite {
 
 		constructor(game: Phaser.Game, x: number, y: number) {
 
-			super(game, x, y, 'simon', 0);
+			super(game, x, y, 'dude', 0);
 
-			this.game.physics.arcade.enableBody(this);
-			
-			this.anchor.setTo(0.5, 0);
+			game.physics.arcade.enable(this);
 
-			this.animations.add('walk', [0, 1, 2, 3, 4], 10, true);
+			this.scale.setTo(2, 2);
+
+			this.animations.add('left', [0, 1, 2, 3], 10, true);
+			this.animations.add('right', [5, 6, 7, 8], 10, true);
+
+			this.body.collideWorldBounds = true;
 
 			game.add.existing(this);
-
 		}
 
 		update() {
@@ -22,24 +24,21 @@ module MyGame {
 
 			if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
 
-				this.body.velocity.x = -150;
-				this.animations.play('walk');
-
-				if (this.scale.x == 1) {
-					this.scale.x = -1;
-				}
+				this.body.velocity.x = -300;
+				this.animations.play('left');
 			}
 			else if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
 
-				this.body.velocity.x = 150;
-				this.animations.play('walk');
-
-				if (this.scale.x == -1) {
-					this.scale.x = 1;
-				}
+				this.body.velocity.x = 300;
+				this.animations.play('right');
 			}
 			else {
-				this.animations.frame = 0;
+				this.animations.stop();
+				this.frame = 4;
+			}
+
+			if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+				this.body.velocity.y = -300;
 			}
 
 		}
