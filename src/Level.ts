@@ -5,6 +5,11 @@
         tileSize: number;
         cameraScale: number = 1;
 
+        resizeLayer(layer: Phaser.TilemapLayer) {
+            layer.scale.setTo(this.tileScale, this.tileScale);
+            layer.resizeWorld();
+        }
+
         // Returns min scale
         getFitScale(map: Phaser.Tilemap): number {
 
@@ -145,31 +150,39 @@
         }
 
         map: Phaser.Tilemap;
+        background: Phaser.TilemapLayer;
         ground: Phaser.TilemapLayer;
+        platform: Phaser.TilemapLayer;
+        misc: Phaser.TilemapLayer;
 
         marker: Phaser.Graphics;
 
         create() {
 
+            // Set up the Tile map
             this.map = this.game.add.tilemap('world1');
-
             this.map.addTilesetImage('SuperMarioBros');
 
-            this.ground = this.map.createLayer('World1', this.map.widthInPixels, this.map.heightInPixels);
-
+            // Get the scale to fit screen
             this.tileScale = this.getFitScale(this.map);
             this.tileSize = this.map.tileHeight * this.tileScale;
 
-            this.ground.scale.setTo(this.tileScale, this.tileScale);
-            this.ground.resizeWorld();
-            this.ground.debug = true;
+            // Adding the layers
+            this.background = this.map.createLayer('Background');
+            this.resizeLayer(this.background);
+            this.ground = this.map.createLayer('Ground');
+            this.resizeLayer(this.ground);
+            this.platform = this.map.createLayer('Platform');
+            this.resizeLayer(this.platform);
+            this.misc = this.map.createLayer('Misc');
+            this.resizeLayer(this.misc);
 
             this.cursors = this.input.keyboard.createCursorKeys();
 
+            // Create the box cursor
             this.marker = this.add.graphics();
             this.marker.lineStyle(2, 0x00bff3, 1);
             this.marker.drawRect(0, 0, this.tileSize, this.tileSize);
-
         }
 
         update() {
