@@ -26,10 +26,12 @@ module test {
 		}
 
 		preload() {
+
 			this.load.image('loading_bar', 'assets/loading_bar.png');
 		}
 
 		create() {
+			
 			this.game.state.start('Preload');
 		}
 	}

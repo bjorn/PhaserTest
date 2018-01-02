@@ -4,6 +4,7 @@ module test {
         preloadBar: Phaser.Sprite;
 
         preload() {
+
             this.preloadBar = this.add.sprite(this.game.world.centerX, this.game.world.centerY + 128, 'loading_bar');
             this.game.load.setPreloadSprite(this.preloadBar);
 
@@ -13,7 +14,8 @@ module test {
         }
 
         create() {
-            this.game.state.start('Level', true, false);
+            
+            this.game.state.start('Level1', true, false);
         }
     }
 }
