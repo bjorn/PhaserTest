@@ -18,7 +18,6 @@ module test {
 
             // Add and set up the map
             this.level = new TiledLevel(this.game, 'world1', 'SuperMarioBros');
-            // this.map.setCollision([13, 14, 15, 20, 21, 26, 27, 39]);
 
             // Create the pointer for controls
             this.pointer = new Pointer(this.game, this.level);
@@ -26,7 +25,9 @@ module test {
             // Adding the layers
             this.background = this.level.addLayer('Background');
             this.ground = this.level.addLayer('Ground');
+            this.level.map.setCollision([14, 15, 16, 21, 22, 27, 28, 40], true, this.ground);
             this.platform = this.level.addLayer('Platform');
+            this.level.map.setCollision([14, 15, 16, 21, 22, 27, 28, 40], true, this.platform);
             this.misc = this.level.addLayer('Misc');
 
             // Add player
@@ -45,7 +46,7 @@ module test {
             this.pointer.update();
 
             this.game.physics.arcade.collide(this.player, this.ground);
-            // this.game.physics.arcade.collide(this.player, this.platform);
+            this.game.physics.arcade.collide(this.player, this.platform);
 
             // Update the marker location based on pointer location
             this.marker.x = this.ground.getTileX(this.pointer.tileLoc.x) * this.level.tileSize;

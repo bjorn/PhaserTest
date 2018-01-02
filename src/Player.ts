@@ -14,7 +14,6 @@ module test {
 			this.animations.add('right', [5, 6, 7, 8], 10, true);
 
 			this.body.collideWorldBounds = true;
-			this.body.setSize(20, 32, 5, 16);
 
 			game.add.existing(this);
 		}

@@ -33,7 +33,7 @@
         // Resize layer according to scale
         resizeLayer(layer: Phaser.TilemapLayer, scale: number = this.tileScale) {
 
-            layer.scale.setTo(scale, scale);
+            layer.setScale(scale, scale);
             layer.resizeWorld();
         }
 

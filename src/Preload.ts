@@ -14,7 +14,7 @@ module test {
         }
 
         create() {
-            
+
             this.game.state.start('Level1', true, false);
         }
     }
