@@ -14,6 +14,8 @@ module test {
 
         marker: Phaser.Graphics;
 
+        editMode: boolean = true;
+
         create() {
 
             // Add and set up the map
@@ -37,16 +39,37 @@ module test {
             this.marker = this.add.graphics();
             this.marker.lineStyle(2, 0x00bff3, 1);
             this.marker.drawRect(0, 0, this.level.tileSize, this.level.tileSize);
-            
         }
 
         update() {
+            
+            var justPressed: boolean;
 
-            // The update function has to be called manually
-            this.pointer.update();
+            if (this.input.keyboard.downDuration(Phaser.Keyboard.ESC, 1)) {
+                justPressed = true;
+            }
+            else {
+                justPressed = false;
+            }
+
+            if (this.editMode && justPressed) {
+                
+                this.editMode = false;
+                justPressed = false;
+                this.camera.follow(this.player);
+            }
+
+            if (!this.editMode && justPressed) {
+                
+                this.editMode = true;
+                justPressed = false;
+                this.camera.follow(null);
+            }
 
             this.game.physics.arcade.collide(this.player, this.ground);
             this.game.physics.arcade.collide(this.player, this.platform);
+
+            this.pointer.update();
 
             // Update the marker location based on pointer location
             this.marker.x = this.ground.getTileX(this.pointer.tileLoc.x) * this.level.tileSize;
