@@ -26,11 +26,11 @@ module test {
 
             // Adding the layers
             this.background = this.level.addLayer('Background');
+            this.misc = this.level.addLayer('Misc');
             this.ground = this.level.addLayer('Ground');
             this.level.map.setCollision([14, 15, 16, 21, 22, 27, 28, 40], true, this.ground);
             this.platform = this.level.addLayer('Platform');
             this.level.map.setCollision([14, 15, 16, 21, 22, 27, 28, 40], true, this.platform);
-            this.misc = this.level.addLayer('Misc');
 
             // Add player
             this.player = new Player(this.game, 200, 200);
@@ -43,6 +43,7 @@ module test {
 
         update() {
             
+            // Toggle camera modes
             var justPressed: boolean;
 
             if (this.input.keyboard.downDuration(Phaser.Keyboard.ESC, 1)) {
@@ -66,10 +67,31 @@ module test {
                 this.camera.follow(null);
             }
 
+            // Check for collision
             this.game.physics.arcade.collide(this.player, this.ground);
             this.game.physics.arcade.collide(this.player, this.platform);
 
+            // Update pointer location
             this.pointer.update();
+
+            // For putting coin tiles
+            if (!this.editMode && this.input.activePointer.leftButton.isDown) {
+
+                var x = this.pointer.tileLoc.x;
+                var y = this.pointer.tileLoc.y;
+                this.level.map.putTile(11, this.misc.getTileX(x), this.misc.getTileY(y), this.misc);
+            }
+
+            // Checks player location and removes coin tile if match
+            var playerTileX = this.misc.getTileX(this.player.x / this.level.tileScale) + 1;
+            var playerTileY = this.misc.getTileY(this.player.y / this.level.tileScale) + 2;
+
+            if (this.level.map.getTile(playerTileX, playerTileY, this.misc, true).index == 11) {
+                this.level.map.removeTile(playerTileX, playerTileY, this.misc);
+            }
+            if (this.level.map.getTile(playerTileX, playerTileY - 1, this.misc, true).index == 11) {
+                this.level.map.removeTile(playerTileX, playerTileY - 1, this.misc);
+            }
 
             // Update the marker location based on pointer location
             this.marker.x = this.ground.getTileX(this.pointer.tileLoc.x) * this.level.tileSize;
