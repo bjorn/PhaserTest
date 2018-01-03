@@ -21,7 +21,7 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 * typescript
-* http-server
+* npm
 
 ### Installing
 
@@ -29,7 +29,8 @@ Assuming you have cloned the project and had the prerequisites installed globall
 
 ```
 tsc --project .
-http-server
+npm install
+npm start
 ```
 
-In your web browser, go to `http:\\localhost:8080`, to check that the web server is running the game locally.
+In your web browser, go to `http://localhost:8080`, to check that the web server is running the game locally.
